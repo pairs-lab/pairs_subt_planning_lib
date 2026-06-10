@@ -1,97 +1,90 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.20)
 project(pairs_subt_planning_lib)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-add_definitions(-O3)
 
-find_package(Eigen3 REQUIRED)
-set(Eigen_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIRS})
-set(Eigen_LIBRARIES ${Eigen_LIBRARIES})
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-set(CATKIN_DEPENDENCIES
-  cmake_modules
+if(ENABLE_COVERAGE)
+  message(WARNING "building for coverage, the performance might be limited")
+
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage -fprofile-arcs")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fprofile-arcs")
+
+  add_definitions("-O1")
+  add_definitions("-g")
+endif()
+
+set(DEPENDENCIES
   pairs_lib
   octomap_msgs
   octomap_ros
   pcl_conversions
   pcl_ros
-  roscpp
+  rclcpp
   sensor_msgs
   std_msgs
-  tf
-  )
+  tf2
+  tf2_ros
+)
 
 set(LIBRARIES
   PairsSubtPlanningLib_Planner
-  )
+)
 
-# disables anoying googletest warning
-set(CATKIN_ENABLE_TESTING FALSE)
+foreach(DEP IN LISTS DEPENDENCIES)
+  find_package(${DEP} REQUIRED)
+endforeach()
 
-# disables anoying PCL warnings
-set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
+## --------------------------------------------------------------
+## |                       compile                              |
+## --------------------------------------------------------------
 
-find_package(PCL REQUIRED COMPONENTS
-  common
-  )
-
-find_package(catkin REQUIRED COMPONENTS
-  ${CATKIN_DEPENDENCIES}
-  )
-
-catkin_package(
-  INCLUDE_DIRS include
-  CATKIN_DEPENDS ${CATKIN_DEPENDENCIES}
-  DEPENDS PCL Eigen
-  LIBRARIES ${LIBRARIES}
-  )
-
-include_directories(
-  include
-  ${PCL_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
-  )
-
-link_directories(
-  ${PCL_LIBRARY_DIRS}
-  )
-
-add_definitions(
-  ${PCL_DEFINITIONS}
-  )
-
-add_library(PairsSubtPlanningLib_Planner
-  src/astar_planner.cpp
+add_library(PairsSubtPlanningLib_Planner SHARED
   src/pcl_map.cpp
-  )
+  src/astar_planner.cpp
+)
 
-add_dependencies(PairsSubtPlanningLib_Planner
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-  )
+# ROS2 / ament deps (adds include dirs & links)
+ament_target_dependencies(PairsSubtPlanningLib_Planner
+  ${DEPENDENCIES}
+)
 
-target_link_libraries(PairsSubtPlanningLib_Planner
-  ${catkin_LIBRARIES}
-  ${PCL_LIBRARIES}
-  ${Eigen_LIBRARIES}
+foreach(library IN LISTS LIBRARIES)
+  target_include_directories(${library}
+    PUBLIC
+      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
   )
+endforeach()
 
 ## --------------------------------------------------------------
 ## |                           Install                          |
 ## --------------------------------------------------------------
 
-install(TARGETS ${LIBRARIES}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
-  )
+install(TARGETS
+  ${LIBRARIES} EXPORT export_${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
 
-install(DIRECTORY include/pairs_subt_planning_lib/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  )
+install(
+  DIRECTORY "include/"
+  DESTINATION "include/${PROJECT_NAME}"
+)
 
-install(DIRECTORY
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-  FILES_MATCHING PATTERN "*.xml"
-  )
+ament_export_targets(
+  export_${PROJECT_NAME} HAS_LIBRARY_TARGET
+)
+
+ament_export_dependencies(
+  ${DEPENDENCIES}
+)
+
+ament_package()

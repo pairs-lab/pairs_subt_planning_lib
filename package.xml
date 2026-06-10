@@ -1,30 +1,32 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>pairs_subt_planning_lib</name>
-  <version>0.0.3</version>
+  <version>0.0.4</version>
   <description>Package for planning in darpa SubT challenge</description>
 
   <maintainer email="canhthanh@vnu.edu.vn">Thanh Nguyen Canh</maintainer>
   <author email="canhthanh@vnu.edu.vn">Thanh Nguyen Canh</author>
 
-  <license>TODO</license>
+  <license>BSD 3-Clause</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
-  <depend>cmake_modules</depend>
   <depend>pairs_lib</depend>
   <depend>octomap_msgs</depend>
   <depend>octomap_ros</depend>
   <depend>pcl_conversions</depend>
   <depend>pcl_ros</depend>
-  <depend>roscpp</depend>
+  <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
-  <depend>tf</depend>
-
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
   <depend>libpcl-all-dev</depend>
 
   <export>
+    <build_type>ament_cmake</build_type>
   </export>
 
 </package>

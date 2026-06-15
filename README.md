@@ -1,6 +1,12 @@
 # pairs_subt_planning_lib
 
-Part of the **PAIRS UAV system**.
+A C++ path-planning library for PAIRS UAVs operating in cluttered, GPS-denied environments such as subterranean spaces. It provides a 3D grid A* planner that searches over an occupancy map built from point clouds and octomaps, producing collision-free paths for the autonomy stack to follow. The package is a header-and-library only (no ROS nodes); other PAIRS components link against it.
+
+## Contents
+
+- `PairsSubtPlanningLib_Planner` — library (`pairs_subt_planning` namespace) built from:
+  - `astar_planner` — 3D A* search over an octomap grid with obstacle-distance cost terms.
+  - `pcl_map` (`PCLMap`) — loads maps from PCD/octomap and answers nearest-obstacle distance queries using PCL.
 
 ## Branches
 - `ros1` — ROS 1 Noetic (catkin)
